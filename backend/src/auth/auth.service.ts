@@ -25,7 +25,7 @@ export class AuthService {
           name: dto.name,
         },
       });
-      return this.signToken(user.id, user.email, user.role, user.name || 'User');
+      return this.signToken(user.id, user.email, user.role, user.name || 'User', user.picture || undefined);
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
@@ -47,18 +47,51 @@ export class AuthService {
     const pwMatches = await bcrypt.compare(dto.password, user.password);
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
 
-    return this.signToken(user.id, user.email, user.role, user.name || 'User');
+    return this.signToken(user.id, user.email, user.role, user.name || 'User', user.picture || undefined);
   }
 
-  async signToken(userId: string, email: string, role: string, name: string) {
-    const payload = { sub: userId, email, role };
+  async validateGoogleUser(details: { email: string; firstName: string; lastName: string; picture?: string }) {
+    console.log('Validating Google User', details.email);
+    let user = await this.prisma.user.findUnique({
+      where: { email: details.email },
+    });
+
+    if (user) {
+      // Update user name to ensure it's synced with Google
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          name: `${details.firstName} ${details.lastName}`,
+          picture: details.picture
+        },
+      });
+      return this.signToken(user.id, user.email, user.role, user.name || 'User', user.picture || undefined);
+    }
+
+    console.log('Creating new user from Google profile');
+    const newUser = await this.prisma.user.create({
+      data: {
+        email: details.email,
+        name: `${details.firstName} ${details.lastName}`,
+        picture: details.picture,
+        password: '',
+        role: 'STUDENT',
+      },
+    });
+
+    return this.signToken(newUser.id, newUser.email, newUser.role, newUser.name || 'User', newUser.picture || undefined);
+  }
+
+  async signToken(userId: string, email: string, role: string, name: string, picture?: string) {
+    const payload = { sub: userId, email, role, picture };
     return {
       access_token: await this.jwtService.signAsync(payload),
       user: {
         id: userId,
         email,
         name,
-        role
+        role,
+        picture
       }
     };
   }

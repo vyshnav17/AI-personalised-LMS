@@ -28,8 +28,12 @@ const Sidebar = () => {
         <div className="w-20 bg-slate-900/50 backdrop-blur-xl border-r border-white/10 flex flex-col items-center py-8 h-screen fixed left-0 top-0 z-50">
             {/* Logo Placeholder */}
             <div className="mb-12 cursor-pointer hover:scale-110 transition-transform" onClick={() => setShowProfile(true)}>
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                    <span className="text-white font-bold text-xl">{user?.name?.[0] || 'A'}</span>
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 overflow-hidden">
+                    {user?.picture ? (
+                        <img src={user.picture} alt={user.name} className="w-full h-full object-cover" />
+                    ) : (
+                        <span className="text-white font-bold text-xl">{user?.name?.[0] || 'A'}</span>
+                    )}
                 </div>
             </div>
 
@@ -45,8 +49,12 @@ const Sidebar = () => {
                         </button>
 
                         <div className="text-center mb-6 mt-2">
-                            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg mb-4 text-4xl font-bold text-white">
-                                {user?.name?.[0] || 'A'}
+                            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg mb-4 text-4xl font-bold text-white overflow-hidden">
+                                {user?.picture ? (
+                                    <img src={user.picture} alt={user.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-white font-bold text-4xl">{user?.name?.[0] || 'A'}</span>
+                                )}
                             </div>
                             <h2 className="text-xl font-bold text-white">{user?.name || 'User'}</h2>
                             <span className="px-3 py-1 bg-indigo-500/20 text-indigo-300 text-xs rounded-full font-medium uppercase tracking-wide border border-indigo-500/30">

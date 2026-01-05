@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { community } from '../services/api';
+import ChatModal from '../components/ChatModal';
 import { MessageSquare, Heart, Send, Loader2, Plus, Users, Search, Hash, ChevronLeft, Trash, LogOut } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 
@@ -33,6 +34,9 @@ const CommunityView = () => {
 
     // Members State
     const [members, setMembers] = useState<any[]>([]);
+
+    // Chat State
+    const [chatUser, setChatUser] = useState<any>(null);
 
     // Initial Fetch
     useEffect(() => {
@@ -461,6 +465,13 @@ const CommunityView = () => {
                                             </p>
                                             <p className="text-xs text-slate-500 capitalize">{member.role?.toLowerCase() || 'member'}</p>
                                         </div>
+                                        <button
+                                            onClick={() => member.id !== userId && setChatUser(member)}
+                                            className="bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 p-2 rounded-lg ml-auto transition-colors"
+                                            title="Message"
+                                        >
+                                            <Send className="w-4 h-4" />
+                                        </button>
                                     </div>
                                 ))}
                             </div>
@@ -524,6 +535,15 @@ const CommunityView = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Chat Modal */}
+            {chatUser && userId && (
+                <ChatModal
+                    targetUser={chatUser}
+                    currentUser={{ id: userId }} // Minimal user obj
+                    onClose={() => setChatUser(null)}
+                />
             )}
         </div>
     );

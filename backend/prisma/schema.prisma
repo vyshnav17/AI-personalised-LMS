@@ -13,6 +13,7 @@ model User {
   email     String   @unique
   password  String
   name      String?
+  picture   String?
   role      String   @default("STUDENT")
   xp        Int      @default(0)
   createdAt DateTime @default(now())
@@ -27,6 +28,43 @@ model User {
   profile      LearningProfile?
   achievements UserAchievement[]
   communityMemberships CommunityMember[]
+
+  conversations ConversationParticipant[]
+  sentMessages DirectMessage[] @relation("SentMessages")
+}
+
+// ... (Existing models)
+
+model Conversation {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  participants ConversationParticipant[]
+  messages     DirectMessage[]
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  userId         String
+  conversationId String
+  joinedAt       DateTime     @default(now())
+  
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, conversationId])
+}
+
+model DirectMessage {
+  id             String   @id @default(uuid())
+  content        String   // Plain text content
+  senderId       String
+  conversationId String
+  createdAt      DateTime @default(now())
+  
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 }
 
 // Enum removed for SQLite compatibility

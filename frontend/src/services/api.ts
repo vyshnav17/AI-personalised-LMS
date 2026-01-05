@@ -56,6 +56,13 @@ export const community = {
     getMembers: (id: string) => api.get(`/community/${id}/members`),
 };
 
+export const chat = {
+    createConversation: (targetUserId: string) => api.post('/chat/conversation', { targetUserId }),
+    getConversations: () => api.get('/chat/conversations'),
+    sendMessage: (data: { conversationId: string; content: string }) => api.post('/chat/messages', data),
+    getMessages: (conversationId: string) => api.get(`/chat/messages/${conversationId}`),
+};
+
 export const profile = {
     get: () => api.get('/profile'),
     update: (data: { difficulty?: string; pacing?: string; interests?: string[] }) => api.put('/profile', data),

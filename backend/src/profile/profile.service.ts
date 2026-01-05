@@ -6,14 +6,27 @@ export class ProfileService {
     constructor(private prisma: PrismaService) { }
 
     async getProfile(userId: string) {
-        let profile = await this.prisma.learningProfile.findUnique({ where: { userId } });
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: { profile: true },
+        });
+
+        if (!user) return null;
+
+        let profile = user.profile;
         if (!profile) {
-            // Create default
             profile = await this.prisma.learningProfile.create({
                 data: { userId },
             });
         }
-        return profile;
+
+        const { password, profile: _, ...userDetails } = user;
+        const { id: profileId, userId: pid, ...profileData } = profile;
+
+        return {
+            ...userDetails,
+            ...profileData,
+        };
     }
 
     async updateProfile(userId: string, data: { difficulty?: string; pacing?: string; interests?: string[] }) {

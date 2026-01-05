@@ -16,6 +16,7 @@ import { AttendanceModule } from './attendance/attendance.module';
 import { CommunityModule } from './community/community.module';
 import { ProfileModule } from './profile/profile.module';
 import { GamificationModule } from './gamification/gamification.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { GamificationModule } from './gamification/gamification.module';
     CommunityModule,
     ProfileModule,
     GamificationModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

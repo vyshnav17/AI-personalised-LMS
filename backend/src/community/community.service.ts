@@ -109,6 +109,11 @@ export class CommunityService {
 
         return this.prisma.communityPost.create({
             data: { userId, title: cleanTitle, content: cleanContent, communityId, courseId },
+            include: {
+                user: { select: { id: true, name: true, role: true } },
+                _count: { select: { comments: true, likes: true } },
+                likes: { select: { userId: true } },
+            },
         });
     }
 
