@@ -1,0 +1,212 @@
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("STUDENT")
+  xp        Int      @default(0)
+  createdAt DateTime @default(now())
+
+  enrollments  Enrollment[]
+  examResults  ExamResult[]
+  certificates Certificate[]
+  posts        CommunityPost[]
+  attendance   Attendance[]
+  comments     Comment[]
+  likes        Like[]
+  profile      LearningProfile?
+  achievements UserAchievement[]
+  communityMemberships CommunityMember[]
+}
+
+// Enum removed for SQLite compatibility
+
+model Course {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  generatedBy String // The prompt used to generate this
+  status      String   @default("CREATING") // CREATING, READY, FAILED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  modules     Module[]
+  enrollments Enrollment[]
+  attendance  Attendance[]
+}
+
+model Module {
+  id       String   @id @default(uuid())
+  title    String
+  order    Int
+  courseId String
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  lessons  Lesson[]
+}
+
+model Lesson {
+  id        String   @id @default(uuid())
+  title     String
+  content   String   // Markdown or HTML
+  order     Int
+  moduleId  String
+  module    Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  
+  // Vector embedding for RAG could be stored here or in a separate table/extensions
+  // For MVP, we assume we might query this text or use a separate index.
+  // If using pgvector, we would add: embedding Unsupported("vector(1536)")?
+}
+
+model Enrollment {
+  userId    String
+  courseId  String
+  progress  Float    @default(0) // Percentage 0-100
+  completed Boolean  @default(false)
+  joinedAt  DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  @@id([userId, courseId])
+}
+
+model ExamResult {
+  id        String   @id @default(uuid())
+  userId    String
+  courseId  String?  // Optional, if exam is tied to a course
+  score     Float
+  details   String?  // JSON stringified
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Certificate {
+  id             String   @id @default(uuid())
+  userId         String
+  courseId       String
+  verificationId String   @unique // Publicly shareable ID
+  issuedAt       DateTime @default(now())
+  metadata       String?    // JSON stringified
+  
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model CommunityPost {
+  id        String    @id @default(uuid())
+  title     String
+  content   String
+  userId    String
+  courseId  String?
+  communityId String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  community Community? @relation(fields: [communityId], references: [id], onDelete: SetNull)
+  comments  Comment[]
+  likes     Like[]
+}
+
+model Community {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String
+  creatorId   String
+  createdAt   DateTime @default(now())
+  
+  posts       CommunityPost[]
+  members     CommunityMember[]
+}
+
+model CommunityMember {
+  id          String   @id @default(uuid())
+  userId      String
+  communityId String
+  joinedAt    DateTime @default(now())
+  
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, communityId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
+
+model LearningProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  difficulty     String   @default("BEGINNER") // BEGINNER, INTERMEDIATE, ADVANCED
+  pacing         String   @default("MODERATE") // SLOW, MODERATE, FAST
+  interests      String?  // JSON array
+  lastAssessment DateTime?
+  
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  userId    String
+  courseId  String
+  date      DateTime @default(now())
+  minutes   Int      @default(0)
+  lastPing  DateTime @updatedAt
+  
+  user      User     @relation(fields: [userId], references: [id])
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, courseId, date])
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  code        String   @unique // e.g. "FIRST_COURSE"
+  title       String
+  description String
+  icon        String   // React icon name or URL
+  xpReward    Int
+  
+  users       UserAchievement[]
+}
+
+model UserAchievement {
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+  
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  
+  @@id([userId, achievementId])
+}
