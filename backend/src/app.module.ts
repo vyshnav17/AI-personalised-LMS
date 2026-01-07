@@ -24,11 +24,17 @@ import { ChatModule } from './chat/chat.module';
     CacheModule.registerAsync({
       isGlobal: true,
       imports: [ConfigModule],
-      useFactory: async (config: ConfigService) => ({
-        store: redisStore,
-        url: config.get('REDIS_URL') || 'redis://localhost:6379',
-        ttl: 5000,
-      }),
+      useFactory: async (config: ConfigService) => {
+        const redisUrl = config.get('REDIS_URL');
+        if (redisUrl) {
+          return {
+            store: redisStore,
+            url: redisUrl,
+            ttl: 5000,
+          };
+        }
+        return { ttl: 5000 };
+      },
       inject: [ConfigService],
     }),
     PrismaModule,
@@ -37,7 +43,6 @@ import { ChatModule } from './chat/chat.module';
     CoursesModule,
     TutorModule,
     ExamModule,
-    CertificateModule,
     CertificateModule,
     AttendanceModule,
     CommunityModule,
