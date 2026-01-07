@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { community } from '../services/api';
 import ChatModal from '../components/ChatModal';
-import { MessageSquare, Heart, Send, Loader2, Plus, Users, Search, Hash, ChevronLeft, Trash, LogOut } from 'lucide-react';
+import { MessageSquare, Heart, Send, Loader2, Plus, Users, Hash, ChevronLeft, Trash, LogOut } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 
 const CommunityView = () => {

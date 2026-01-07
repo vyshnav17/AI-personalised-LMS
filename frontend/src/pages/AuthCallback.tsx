@@ -30,7 +30,7 @@ const AuthCallback = () => {
 
     const fetchUserProfile = async (token: string) => {
         try {
-            const response = await fetch('http://localhost:3000/profile', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/profile`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {

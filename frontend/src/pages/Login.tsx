@@ -67,7 +67,7 @@ const Login = () => {
 
                     <button
                         type="button"
-                        onClick={() => window.location.href = 'http://localhost:3000/auth/google'}
+                        onClick={() => window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/auth/google`}
                         className="w-full py-3.5 mb-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/10 transition-all flex items-center justify-center gap-3"
                     >
                         <i className="fab fa-google text-red-500"></i> {/* Assuming FontAwesome is available, or use SVG */}
